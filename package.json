@@ -1,0 +1,12 @@
+{
+  "name": "BPMNSHMUP",
+  "version": "0.1",
+  "description": "PixiJS and 2d Space Experiments",
+  "main": "index.html",
+  "author": "Matt F",
+  "license": "COPYRIGHT",
+  "type": "module",
+  "dependencies": {
+    "pixi.js": "^6.2.1"
+  }
+}
