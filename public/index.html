@@ -42,7 +42,7 @@
             this.nodes = [];
         }
 
-        /*Subnodes are anchored top left and build like so
+        /*Subnodes are anchored top left and built like so
             0  1
             2  3
         */
@@ -160,7 +160,7 @@
     //Testing the tree
     let myQuadTree = new Quadtree(0, 0,0, 800, 600);
     let someSprites = [];
-    for(let i = 0; i < 100; i++){
+    for(let i = 0; i < 1; i++){
         let aSprite = new PIXI.Sprite.from('./images/hat.png');
         aSprite.x = Math.random()*600;
         aSprite.y = Math.random()*600;
@@ -169,6 +169,44 @@
         someSprites.push(aSprite);
         app.stage.addChild(aSprite);
     }
+
+    //Testing a bullet
+    class bullet{
+        constructor(x, y, sprite, angle, speed){
+            this.sprite = new PIXI.Sprite.from(sprite);
+            this.sprite.angle = angle;
+            this.sprite.position = new PIXI.ObservablePoint(x,y);
+            this.speed = speed;
+        }
+
+        move(delta){
+          if(this.sprite.x > 800){
+            this.sprite.x = -5;
+          } else{
+            if(this.sprite.x < 0) this.sprite.x = 805;
+          }
+          
+          if(this.sprite.y > 600) {
+            this.sprite.y = -5;
+          }else{
+            if(this.sprite.y < 0) this.sprite.y = 605;
+          }
+          
+          if(this.sprite.angle > 360){
+            this.sprite.angle += 0.03 * delta;
+            this.sprite.angle = this.sprite.angle % 360;
+          }
+          this.sprite.angle += 0.03 * delta;
+
+          this.sprite.x += Math.sin(this.sprite.angle) * this.speed * delta;
+          this.sprite.y += Math.cos(this.sprite.angle) * this.speed * delta;
+          }
+    }
+
+    let pew = new bullet(50, 50, './images/pellet.png', 0, 2);
+    app.stage.addChild(pew.sprite);
+    pew.sprite.x = 150;
+    pew.sprite.y = 150;
 
     let frameCounter = 0;
     app.ticker.add((delta) => {
@@ -180,7 +218,9 @@
           myQuadTree.insert(someSprites[i]);
       }
 
-      someSprites[1].alpha = Math.abs(Math.sin(frameCounter/10));
+      pew.move(delta);
+
+      someSprites[0].alpha = Math.abs(Math.sin(frameCounter/10));
     });
     
 

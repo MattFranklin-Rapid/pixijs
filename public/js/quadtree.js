@@ -1,5 +1,5 @@
 //const { Rectangle, Graphics } = require("pixi.js");
-import { Rectangle, Graphics } from "pixi.js";
+import { Rectangle } from "pixi.js";
 
 class Quadtree {
     constructor(level, x, y, width, height){
@@ -22,7 +22,7 @@ class Quadtree {
         this.nodes = [];
     }
 
-    /*Subnodes are anchored top left and build like so
+    /*Subnodes are anchored top left and built like so
         0  1
         2  3
     */
@@ -34,9 +34,9 @@ class Quadtree {
         let level = this.level + 1;
 
         this.nodes[0] = new Quadtree(level, x, y, subWidth, subHeight);
-        this.nodes[1] = new Quadtree(this.level, x + subWidth, y, subWidth, subHeight);
-        this.nodes[2] = new Quadtree(this.level, x, y + subHeight, subWidth, subHeight);
-        this.nodes[3] = new Quadtree(this.level, x + subWidth, y + subHeight, subWidth, subHeight);
+        this.nodes[1] = new Quadtree(level, x + subWidth, y, subWidth, subHeight);
+        this.nodes[2] = new Quadtree(level, x, y + subHeight, subWidth, subHeight);
+        this.nodes[3] = new Quadtree(level, x + subWidth, y + subHeight, subWidth, subHeight);
     }
 
     /*
@@ -46,16 +46,18 @@ class Quadtree {
     */
     getIndex(element){
         let index = -1;
-        horizontalMidpoint = element.x + (element.width/2);
-        verticalMidpoint = element.y + (element.height/2);
+        let x = element.x; //element._geometry.graphicsData[0].shape.x;
+        let y = element.y; //element._geometry.graphicsData[0].shape.y;
+        let horizontalMidpoint = this.bounds.width / 2;
+        let verticalMidpoint = this.bounds.height / 2;
         
         //Is the element wholey within the top or bottom half? y == midpoint is regarded as not within the bottom
-        let topQuadrant = !!(element.y < verticalMidpoint && element.y + element.height < verticalMidpoint);
-        let bottomQuadrant = !!(element.y > verticalMidpoint);
+        let topQuadrant = !!(y < verticalMidpoint && y + element.height < verticalMidpoint);
+        let bottomQuadrant = !!(y > verticalMidpoint);
 
         //Is the element wholey within the left or right half? x == midpoint is regarded as not within the right
-        let leftQuadrant = !!(element.x < horizontalMidpoint && element.x + element.width < horizontalMidpoint);
-        let rightQuadrant = !!(element.x > horizontalMidpoint);
+        let leftQuadrant = !!(x < horizontalMidpoint && x + element.width < horizontalMidpoint);
+        let rightQuadrant = !!(x > horizontalMidpoint);
 
         //Is the element fully within a corner?
         if(topQuadrant && leftQuadrant){
@@ -79,7 +81,7 @@ class Quadtree {
             let index = this.getIndex(element);
 
             if(index != -1){
-                this.nodes[index].insert(eleemtn);
+                this.nodes[index].insert(element);
                 return; //"We're done here" - Cave Johnson
             }
         }
@@ -100,7 +102,7 @@ class Quadtree {
             while(i < this.objects.length){
                 let index = this.getIndex(this.objects[i]);
                 if(index != -1){
-                    this.nodes[index].insert(this.objects.splice(i,1));
+                    this.nodes[index].insert(this.objects.splice(i,1)[0]);
                 }else{
                     i++;
                 }
@@ -119,25 +121,18 @@ class Quadtree {
         foundElements.push(this.objects);
         return foundElements;
     }
+
+    explain(){
+      if(this.nodes.length != 0){
+        console.log(`Level : ${this.level + 1} | TopLeft  Objects ${this.nodes[0].objects.length} | X: ${this.nodes[0].bounds.x} | Y: ${this.nodes[0].bounds.y}
+        TopRight Objects ${this.nodes[1].objects.length} | X: ${this.nodes[1].bounds.x} | Y: ${this.nodes[1].bounds.y}
+        BotLeft  Objects ${this.nodes[2].objects.length} | X: ${this.nodes[2].bounds.x} | Y: ${this.nodes[2].bounds.y}
+        BotRight Objects ${this.nodes[3].objects.length}   X: ${this.nodes[3].bounds.x} | Y: ${this.nodes[3].bounds.y}`);
+        this.nodes[0].explain();
+        this.nodes[1].explain();
+        this.nodes[2].explain();
+        this.nodes[3].explain();
+      }
+      
+    }
 }
-
-//Testing the tree
-let myQuadTree = new Quadtree(0, 0,0, 800, 600);
-let someRectangles = [];
-for(let i = 0; i < 10; i++){
-    aGraphic = new Graphics();
-    aGraphic.beginFill(0xFF0000);
-    aGraphic.lineStyle(2, 0xFFFFFF);
-    aGraphic.drawRect(Math.random(600), Math.random(600), Math.random(100) + 1, Math.random(100) + 1);
-    someRectangles.push(aRectangle);
-}
-
-// Simulating a frame
-myQuadTree.clear();
-
-for(let i = 0; i <= someRectangles.length; i++){
-    myQuadTree.insert(someRectangles[i]);
-}
-
-myQuadTree.retrive(stuff, someRectangles[2]);
-console.log('Did it work?');
